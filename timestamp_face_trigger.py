@@ -1,0 +1,66 @@
+#!/usr/bin/env python3
+# Copyright 2017 Google Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+"""Trigger PiCamera when face is detected."""
+
+from aiy.vision.inference import CameraInference
+from aiy.vision.models import face_detection
+from picamera import PiCamera
+import argparse
+import collections
+import contextlib
+import io
+import logging
+import math
+import os
+import queue
+import signal
+import sys
+import threading
+import time
+from PIL import Image, ImageDraw, ImageFont
+from picamera import PiCamera
+from aiy.board import Board
+from aiy.leds import Color, Leds, Pattern, PrivacyLed
+from aiy.toneplayer import TonePlayer
+from aiy.vision.streaming.server import StreamingServer
+from aiy.vision.streaming import svg
+import datetime
+
+def take_photo():
+            logger.info('Button pressed.')
+            player.play(BEEP_SOUND)
+            photographer.shoot(camera)
+
+def main():
+    with PiCamera() as camera:
+        # Configure camera
+        camera.resolution = (1640, 922)  # Full Frame, 16:9 (Camera v2)
+        camera.start_preview()
+
+        # Do inference on VisionBonnet
+        with CameraInference(face_detection.model()) as inference:
+            for result in inference.run():
+                if len(face_detection.get_faces(result)) >= 1:
+                    e = datetime.datetime.now()
+
+                    camera.capture('/home/pi/Pictures/'+e.strftime('%Y-%m-%d %H:%M:%S')+'.jpg')
+                    break
+
+        # Stop preview
+        camera.stop_preview()
+
+
+if __name__ == '__main__':
+    main()
